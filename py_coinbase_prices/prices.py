@@ -60,13 +60,13 @@ if __name__ == "__main__":
     client = CoinbasePrices()
     now = datetime.now()
     now -= timedelta(seconds=now.second)
-    print(now, int(now.timestamp()))
+    print("Time:", now, int(now.timestamp()))
     buy = client.get_buy_price(args.crypto, args.currency)
-    print(buy)
+    print("Buy:", buy)
     sell = client.get_sell_price(args.crypto, args.currency)
-    print(sell)
+    print("Sell:", sell)
     spot = client.get_spot_price(args.crypto, args.currency)
-    print(spot)
+    print("Spot:", spot)
 
 
     conn = sqlite3.connect('prices.sqlite')
