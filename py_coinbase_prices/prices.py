@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from locale import currency
 import sqlite3
-from time import time
 import requests
 
 
@@ -11,6 +9,16 @@ class Price:
     crypto: str
     currency: str
     amount: float
+
+
+@dataclass
+class CoinbasePriceRow:
+    timestamp: datetime
+    crypto: str
+    currency: str
+    buy_price: float
+    sell_price: float
+    spot_price: float
 
 
 class CoinbasePrices:
@@ -48,18 +56,54 @@ class CoinbasePrices:
         )
 
 
+@dataclass
+class CoinbasePriceTable:
+    db_loc: str
+
+    def save(self, row: CoinbasePriceRow) -> None:
+        conn = sqlite3.connect(self.db_loc)
+        cur = conn.cursor()
+        cur.execute(
+            """CREATE TABLE IF NOT EXISTS "coinbase_prices" (
+                "date"	INTEGER NOT NULL,
+                "crypto"	TEXT NOT NULL,
+                "currency"	TEXT NOT NULL,
+                "buy_price"	REAL NOT NULL,
+                "sell_price"	REAL NOT NULL,
+                "spot_price"	REAL,
+                PRIMARY KEY("date","crypto","currency")
+            )"""
+        )
+        fields = (
+            int(
+                row.timestamp.timestamp()
+            ),  # sqlite does not support datetime columns at this time
+            row.crypto,
+            row.currency,
+            row.buy_price,
+            row.sell_price,
+            row.spot_price,
+        )
+        cur.execute(f"INSERT INTO coinbase_prices VALUES (?, ?, ?, ?, ?, ?)", fields)
+        conn.commit()
+        conn.close()
+
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Create a DB of Coinbase prices.")
-    parser.add_argument("crypto", help="The cryptocurrency coin code.")
     parser.add_argument("currency", help="The currency of the price.")
+    parser.add_argument("crypto", help="The cryptocurrency coin code.")
+    parser.add_argument("--db", default="prices.sqlite", help="Database location.")
 
     args = parser.parse_args()
 
-    client = CoinbasePrices()
+    # round time down to nearest minute
     now = datetime.now()
     now -= timedelta(seconds=now.second)
+
+    client = CoinbasePrices()
     print("Time:", now, int(now.timestamp()))
     buy = client.get_buy_price(args.crypto, args.currency)
     print("Buy:", buy)
@@ -68,9 +112,13 @@ if __name__ == "__main__":
     spot = client.get_spot_price(args.crypto, args.currency)
     print("Spot:", spot)
 
-
-    conn = sqlite3.connect('prices.sqlite')
-    cur = conn.cursor()
-    cur.execute(f"INSERT INTO coinbase_prices VALUES ({int(now.timestamp())}, '{buy.crypto}', '{buy.currency}', {buy.amount}, {sell.amount}, {spot.amount})")
-    conn.commit()
-    conn.close()
+    row = CoinbasePriceRow(
+        now,
+        buy.crypto,
+        buy.currency,
+        buy_price=buy.amount,
+        sell_price=sell.amount,
+        spot_price=spot.amount,
+    )
+    table = CoinbasePriceTable(args.db)
+    table.save(row)
