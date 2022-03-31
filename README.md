@@ -31,11 +31,11 @@ Spot: Price(crypto='BTC', currency='USD', amount=47128.58)
 
 ```
 >>> docker build -t coinbase .
->>> docker run coinbase BTC USD
+>>> docker run coinbase ETH USD
 
-Time: 2022-03-30 13:51:00.697442 1648648260
-Buy: Price(crypto='BTC', currency='USD', amount=47349.88)
-Sell: Price(crypto='BTC', currency='USD', amount=46880.51)
-Spot: Price(crypto='BTC', currency='USD', amount=47128.58)
+Time: 2022-03-30 13:53:00.627757 1648648380
+Buy: Price(crypto='ETH', currency='USD', amount=3392.05)
+Sell: Price(crypto='ETH', currency='USD', amount=3357.63)
+Spot: Price(crypto='ETH', currency='USD', amount=3379.0)
 
 ```
