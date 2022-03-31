@@ -1,6 +1,6 @@
 # Coinbase Prices
 Get the current Coinbase prices and save them to a database. If you do not want to build the docker container youself, you can download the prebuilt containers from:
-[TBD]
+https://hub.docker.com/repository/docker/minormending/pycoinbase-prices
 
 # Usage
 ```
